@@ -22,3 +22,4 @@ user = json.loads(dut.signup())
 username = user.get('username')
 password = user.get('password')
 print(f'계정 생성 결과\n아이디: {username}\n암호: {password}')
+#뭔가 문제가 있음
