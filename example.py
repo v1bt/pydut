@@ -22,3 +22,4 @@ user = json.loads(dut.signup())
 username = user.get('username')
 password = user.get('password')
 print(f'계정 생성 결과\n아이디: {username}\n암호: {password}')
+# None으로 반환될 시, 있는 아이디여서 생성 중 오류가 발생했을 수 있습니다.
