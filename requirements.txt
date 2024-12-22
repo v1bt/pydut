@@ -1,0 +1,4 @@
+requests==2.32.3
+beautifulsoup4==4.12.3
+websocket-client==1.8.0
+tempmail-lol==3.0.0
