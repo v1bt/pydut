@@ -7,7 +7,7 @@
 
 ## 설치
 ```
-pip install git+https://github.com/V1rtualByte/pydut.git
+pip install git+https://github.com/v1bt/pydut.git
 ```
 
 ## 사용 예
