@@ -15,11 +15,11 @@ user = dut.signin('USERNAME', 'PASSWORD')
 print(f'로그인 결과\nSession: {user.session}\nCsrf_Token: {user.csrf_token}\nX_Token: {user.x_token}')
 
 # 회원가입
-user = json.loads(dut.signup()) 
+user = json.loads(dut.signup())
+print(user)
 # username, password, email 설정 가능
 # 입력 안했을시, 임의의 문자열과 일회용 메일로 생성되고 인증됨
 
 username = user.get('username')
 password = user.get('password')
 print(f'계정 생성 결과\n아이디: {username}\n암호: {password}')
-# None으로 반환될 시, 있는 아이디여서 생성 중 오류가 발생했을 수 있습니다.
