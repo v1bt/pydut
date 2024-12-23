@@ -11,7 +11,7 @@ pip install git+https://github.com/V1rtualByte/pydut.git
 ```
 
 ## 사용 예
-[사용 예는 여기서 확인할 수 있습니다.](https://github.com/V1rtualByte/pydut/blob/main/example.py)
+[사용 예는 여기서 확인할 수 있습니다.](https://github.com/v1bt/pydut/blob/main/example.py)
 <br>
 <br>
 
