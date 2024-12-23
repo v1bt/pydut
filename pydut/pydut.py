@@ -261,7 +261,6 @@ def signup(username=None, password=None, email=None):
     if not email:
         inb = tmp.createInbox()
         email = inb.address
-        print(email)
 
     session = requests.Session()
     page = session.get('https://playentry.org/signin')
