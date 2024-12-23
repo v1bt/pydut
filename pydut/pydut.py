@@ -170,7 +170,86 @@ def get(signin_session, project_id, v_id):
         return json.dumps({'error': '변수를 찾을 수 없습니다.'}, ensure_ascii=False), 404
 
 def random_string(length=8):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    letters = ''.join(random.choices(string.ascii_letters, k=length-2))
+    digits = ''.join(random.choices(string.digits, k=2))
+    combined = list(letters + digits)
+    random.shuffle(combined)
+    return ''.join(combined)
+
+def check_username_exists(username, session, csrf_token):
+    query = """
+    query CHECK_EXISTS_USERNAME($username: String) {
+        existsUser(username: $username) {
+            exists
+        }
+    }
+    """
+    variables = {
+        "username": username
+    }
+    
+    response = session.post('https://playentry.org/graphql/', headers={
+        "Content-Type": "application/json",
+        "csrf-token": csrf_token,
+    }, json={
+        "query": query,
+        "variables": variables
+    })
+    
+    if response.status_code == 200:
+        return response.json().get('data', {}).get('existsUser', {}).get('exists', False)
+    return False
+
+def check_prohibited_word(word, session, csrf_token):
+    query = """
+    query CHECK_PROHIBITED_WORD($type: String, $word: String) {
+        prohibitedWord(type: $type, word: $word) {
+            status
+            result
+        }
+    }
+    """
+    variables = {
+        "type": "user",
+        "word": word
+    }
+    
+    response = session.post('https://playentry.org/graphql/', headers={
+        "Content-Type": "application/json",
+        "csrf-token": csrf_token,
+    }, json={
+        "query": query,
+        "variables": variables
+    })
+    
+    if response.status_code == 200:
+        return response.json().get('data', {}).get('prohibitedWord', {}).get('result', False)
+    return False
+
+
+def check_email_exists(email, session, csrf_token):
+    query = """
+    query CHECK_EXISTS_EMAIL($email: String) {
+        existsUser(email: $email) {
+            exists
+        }
+    }
+    """
+    variables = {
+        "email": email
+    }
+    
+    response = session.post('https://playentry.org/graphql/', headers={
+        "Content-Type": "application/json",
+        "csrf-token": csrf_token,
+    }, json={
+        "query": query,
+        "variables": variables
+    })
+    
+    if response.status_code == 200:
+        return response.json().get('data', {}).get('existsUser', {}).get('exists', False)
+    return False
 
 def signup(username=None, password=None, email=None):
     userid = username if username else random_string(8)
@@ -182,6 +261,7 @@ def signup(username=None, password=None, email=None):
     if not email:
         inb = tmp.createInbox()
         email = inb.address
+        print(email)
 
     session = requests.Session()
     page = session.get('https://playentry.org/signin')
@@ -203,12 +283,44 @@ def signup(username=None, password=None, email=None):
     requests.get('https://playentry.org/signup/2',cookies={"_ecui": ecui})
     requests.get('https://playentry.org/signup/3',cookies={"_ecui": ecui})
 
+    if username:
+        if not (4 <= len(username) <= 20):
+            return json.dumps({'status': 'failed', 'message': '아이디는 4자 이상 20자 이하이어야 합니다.'}, ensure_ascii=False)
+        
+        if check_prohibited_word(username, session, csrf_token):
+            return json.dumps({'status': 'failed', 'message': '아이디에 금지된 단어가 포함되어 있습니다.'}, ensure_ascii=False)
+
+        exists = check_username_exists(username, session, csrf_token)
+        if exists:
+            return json.dumps({'status': 'failed', 'message': '이미 존재하는 아이디입니다.'}, ensure_ascii=False)
+
+    if password:
+        if len(password) < 5:
+            return json.dumps({'status': 'failed', 'message': '비밀번호는 5자 이상의 길이여야 합니다.'}, ensure_ascii=False)
+        if not any(c.isalpha() for c in password) or not any(c.isdigit() for c in password):
+            return json.dumps({'status': 'failed', 'message': '비밀번호는 영문과 숫자가 모두 포함되어야 합니다.'}, ensure_ascii=False)
+
+    if email and check_email_exists(email, session, csrf_token):
+        return json.dumps({'status': 'failed', 'message': '이미 존재하는 이메일입니다.'}, ensure_ascii=False)
+
     signup = session.post('https://playentry.org/graphql/', headers={
         "Content-Type": "application/json",
         "csrf-token": csrf_token,
     }, json={
         'query': ' mutation SIGNUP_BY_USERNAME( $role: String!, $grade: String, $gender: String!, $nickname: String!, $email: String, $username: String!, $password: String!, $passwordConfirm: String!, $mobileKey: String, $signupToken: String, $bornYear: String, $parentName: String, $parentMobileKey: String ) { signupByUsername( role: $role, grade: $grade , gender: $gender , nickname: $nickname , email: $email , username: $username , password: $password, passwordConfirm: $passwordConfirm, mobileKey: $mobileKey, signupToken: $signupToken, bornYear: $bornYear, parentName: $parentName, parentMobileKey: $parentMobileKey ) { id username nickname role isEmailAuth isSnsAuth isPhoneAuth studentTerm status { userStatus } profileImage { id name label { ko en ja vn } filename imageType dimension { width height } trimmed { filename width height } } banned { username nickname reason bannedCount bannedType projectId startDate userReflect { status endDate } } isProfileBlocked created } }',
-        "variables": f'{{"username": "{userid}","passwordConfirm": "{passwd}","password": "{passwd}","role": "member","grade": null,"gender": "male","bornYear": "2000","nickname": "{nickname}","email": "{email}","mobileKey": null,"signupToken": "{st}"}}'
+        "variables": {
+            "username": userid,
+            "passwordConfirm": passwd,
+            "password": passwd,
+            "role": "member",
+            "grade": None,
+            "gender": "male",
+            "bornYear": "2000",
+            "nickname": nickname,
+            "email": email,
+            "mobileKey": None,
+            "signupToken": st
+        }
     })
 
     session.close()
@@ -222,6 +334,7 @@ def signup(username=None, password=None, email=None):
         response_data = signup.json()
         if "errors" in response_data:
             result['message'] = f"오류발생: {response_data['errors'][0]['statusCode']}"
+            result['response'] = response_data
         else:
             emails = None
             while not emails:
