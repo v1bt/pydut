@@ -10,9 +10,9 @@ setup(
         'tempmail-lol==3.0.0',
         'websocket-client==1.8.0',
     ],
-    url='https://github.com/V1rtualByte/pydut',
+    url='https://github.com/v1bt/pydut',
     license='MIT',
-    author='V1rtualByte',
+    author='virtualbyte',
     author_email='judong1094@gmail.com',
     description='playentry.org에 대한 관리 패키지',
 )
