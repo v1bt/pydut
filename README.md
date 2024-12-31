@@ -4,6 +4,7 @@
 # PyDUT
 
 [playentry.org](https://playentry.org/)에 대한 관리 패키지입니다.
+실시간 변수에 대해 오류가 있는것으로 보임
 
 ## 설치
 ```
