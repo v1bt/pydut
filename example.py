@@ -1,6 +1,10 @@
 import pydut as dut
 import json
 
+# 버전 정보
+version = dut.version()
+print(version)
+
 # 엔트리 이야기 글쓰기
 user = dut.signin('USERNAME', 'PASSWORD')
 print(dut.write(user, 'CONTENT')) # sticker등 더 많은 요소 사용 가능
