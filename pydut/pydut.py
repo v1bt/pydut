@@ -12,10 +12,14 @@ import time
 from .graphql import queries
 
 class signin_session:
-    def __init__(self, session, x_token, csrf_token):
+    def __init__(self, session, x_token, csrf_token, user_id):
         self.session = session
         self.x_token = x_token
         self.csrf_token = csrf_token
+        self.user_id = user_id
+
+def version():
+    return '2025-01-27'
 
 def signin(username, password):
     session = requests.Session()
@@ -40,6 +44,7 @@ def signin(username, password):
                             headers=headers,
                             json={'query': query, 'variables': variables})
     data = response.json()
+    user_id = data.get('data', {}).get('signinByUsername', {}).get('id')
 
     if 'errors' in data:
         return None
@@ -49,7 +54,7 @@ def signin(username, password):
     next_data = json.loads(soup.select_one('#__NEXT_DATA__').get_text())
     x_token = next_data['props']['initialState']['common']['user']['xToken']
 
-    return signin_session(session, x_token, csrf_token)
+    return signin_session(session, x_token, csrf_token, user_id)
 
 def ws_query(signin_session, project_id):
     headers = {
